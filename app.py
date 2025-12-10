@@ -95,11 +95,37 @@ section[data-testid="stSidebar"] * {
 
 
 # ==============================
-#   SECURE API KEY (from secrets)
+#   SECURE API KEY (from secrets or env)
 # ==============================
-API_KEY = st.secrets["roboflow"]["api_key"]
-WORKSPACE = st.secrets["roboflow"]["workspace"]
-WORKFLOW  = st.secrets["roboflow"]["workflow"]
+def _get_roboflow_config():
+    """Return (api_key, workspace, workflow) from Streamlit secrets or env vars."""
+    api_key = workspace = workflow = None
+    try:
+        rf = st.secrets.get("roboflow", None)
+        if rf:
+            api_key = rf.get("api_key")
+            workspace = rf.get("workspace")
+            workflow = rf.get("workflow")
+    except Exception:
+        # st.secrets may raise if not available; ignore and fallback to env
+        pass
+
+    # Fallback to environment variables if secrets not provided
+    api_key = api_key or os.environ.get("ROBOFLOW_API_KEY")
+    workspace = workspace or os.environ.get("ROBOFLOW_WORKSPACE")
+    workflow = workflow or os.environ.get("ROBOFLOW_WORKFLOW")
+
+    return api_key, workspace, workflow
+
+
+API_KEY, WORKSPACE, WORKFLOW = _get_roboflow_config()
+
+if not API_KEY or not WORKSPACE or not WORKFLOW:
+    st.error(
+        "Roboflow credentials not found. Provide them via `.streamlit/secrets.toml` or environment variables: `ROBOFLOW_API_KEY`, `ROBOFLOW_WORKSPACE`, `ROBOFLOW_WORKFLOW`."
+    )
+    st.stop()
+
 
 client = InferenceHTTPClient(
     api_url="https://serverless.roboflow.com",
