@@ -1,3 +1,6 @@
+import os
+os.environ["INFERENCE_SDK_SKIP_VISUALIZATION"] = "1"
+
 import streamlit as st
 from inference_sdk import InferenceHTTPClient
 from PIL import Image
