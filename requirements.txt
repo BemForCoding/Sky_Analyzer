@@ -2,3 +2,4 @@ streamlit
 inference-sdk
 Pillow
 plotly
+opencv-python-headless
